@@ -1,0 +1,28 @@
+---
+- name: 'Explicit host argument'
+  hosts: core
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: "Get facts"
+      juniper.device.facts:
+       config_format: set
+      register: junos_facts
+    
+    - name: Save facts to per-host JSON file
+      copy:
+        content: "{{ junos_facts.ansible_facts | to_nice_json }}"
+        dest: "/home/equiros/jncip/facts/{{ inventory_hostname }}.json"
+      delegate_to: localhost
+      run_once: false
+
+    - name: Save Junos config as plain text file
+      copy:
+        content: "{{ junos_facts.ansible_facts.junos.config }}"
+        dest: "/home/equiros/jncip/facts/{{ inventory_hostname }}.json"
+      delegate_to: localhost
+      run_once: false
+
+
+

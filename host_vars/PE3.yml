@@ -1,0 +1,6 @@
+loopback_ip: 3.3.3.3/32
+core_interfaces:
+  - ge-0/0/0
+  - ge-0/0/1
+  - ge-0/0/2
+  - ge-0/0/4

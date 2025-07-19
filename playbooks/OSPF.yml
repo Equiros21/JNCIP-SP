@@ -1,0 +1,44 @@
+---
+- name: Configure OSPF on core routers
+  hosts: core
+  connection: local
+  gather_facts: false
+
+
+  tasks:
+    - name: debug_task
+      debug:
+        msg:
+          - "Loopback: {{ loopback_ip }}"
+          - "Core interfaces: {{ core_interfaces }}"
+          - "OSPF lines: {{ core_interfaces | map('regex_replace', '^(.*)$', 'set protocols ospf area 0 interface \\1.0') | list }}"
+
+    - name: Configure loopback interface
+      juniper.device.config:
+        config_mode: 'private'
+        load: 'merge'
+        lines:
+          - set interfaces lo0 unit 0 family inet address {{ loopback_ip }}
+        comment: "Set loopback address for OSPF"
+
+    - name: Enable OSPF on core interfaces
+      juniper.device.config:
+        config_mode: 'private'
+        load: 'merge'
+        lines: >-
+          {{
+            core_interfaces | map('regex_replace', '^(.*)$', 'set protocols ospf area 0 interface \1.0') | list
+          }}
+        comment: "OSPF on all core interfaces"
+
+    - name: Add loopback as passive OSPF
+      juniper.device.config:
+        config_mode: 'private'
+        load: 'merge'
+        lines:
+          - set protocols ospf area 0 interface lo0.0 passive
+        comment: "OSPF passive on loopback"
+    
+    - name: Commit all config
+      juniper.device.config:
+        commit: yes
